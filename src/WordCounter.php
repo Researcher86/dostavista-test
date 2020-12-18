@@ -8,28 +8,21 @@ use RuntimeException;
 
 class WordCounter
 {
-    private string $text;
-
-    public function __construct(string $text)
+    public function count(string $text, int $limit = 5, string $pattern = '/[\s,]+/'): array
     {
-        $this->text = \mb_strtolower($text);
-    }
-
-    public function count(int $limit = 5, string $pattern = '/[\s,]+/'): array
-    {
-        $words = \preg_split($pattern, $this->text);
+        $words = \preg_split($pattern, \mb_strtolower($text));
 
         if ($words === false) {
             throw new RuntimeException('An error occurred while parsing the string.');
         }
 
-        if (isset($words[0]) && empty($words[0])) {
+        if (empty($words[0])) {
             return [];
         }
 
         $result = [];
         foreach ($words as $word) {
-            $result[$word] = (isset($result[$word]) ? ++$result[$word] : 1);
+            $result[$word] = isset($result[$word]) ? ++$result[$word] : 1;
         }
 
         \arsort($result);

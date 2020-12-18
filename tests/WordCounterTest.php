@@ -9,38 +9,24 @@ use PHPUnit\Framework\TestCase;
 
 class WordCounterTest extends TestCase
 {
-    public function testCountSeparatorSpace()
-    {
-        $wordCounter = new WordCounter('test word test word word');
+    private WordCounter $wordCounter;
 
-        self::assertEquals(['test' => 2, 'word' => 3], $wordCounter->count());
+    protected function setUp(): void
+    {
+        $this->wordCounter = new WordCounter();
     }
 
-    public function testCountComma()
+    /**
+     * @dataProvider dataProvider
+     */
+    public function testCount(string $text, array $expected)
     {
-        $wordCounter = new WordCounter('test,word,test,word , word');
-
-        self::assertEquals(['test' => 2, 'word' => 3], $wordCounter->count());
-    }
-
-    public function testCountEmpty()
-    {
-        $wordCounter = new WordCounter('');
-
-        self::assertEquals([], $wordCounter->count());
-    }
-
-    public function testCountUnicodeString()
-    {
-        $wordCounter = new WordCounter('привет мир привет   мир мир');
-
-        self::assertEquals(['привет' => 2, 'мир' => 3], $wordCounter->count());
+        self::assertEquals($expected, $this->wordCounter->count($text));
     }
 
     public function testSort()
     {
-        $wordCounter = new WordCounter('test word test word word');
-        $result = $wordCounter->count();
+        $result = $this->wordCounter->count('test word test word word');
 
         self::assertEquals('word', \array_key_first($result));
         self::assertEquals('test', \array_key_last($result));
@@ -48,8 +34,7 @@ class WordCounterTest extends TestCase
 
     public function testSortUnicodeString()
     {
-        $wordCounter = new WordCounter('привет мир привет   мир мир');
-        $result = $wordCounter->count();
+        $result = $this->wordCounter->count('привет мир привет   мир мир');
 
         self::assertEquals('мир', \array_key_first($result));
         self::assertEquals('привет', \array_key_last($result));
@@ -57,18 +42,26 @@ class WordCounterTest extends TestCase
 
     public function testTop5()
     {
-        $wordCounter = new WordCounter('test word test word word aa bb dd dd ddd fff sss');
-
-        self::assertCount(5, $wordCounter->count());
-        self::assertEquals(['word' => 3, 'test' => 2, 'dd' => 2, 'aa' => 1, 'bb' => 1], $wordCounter->count());
+        $result = $this->wordCounter->count('test word test word word aa bb dd dd ddd fff sss');
+        self::assertCount(5, $result);
+        self::assertEquals(['word' => 3, 'test' => 2, 'dd' => 2, 'aa' => 1, 'bb' => 1], $result);
     }
 
     public function testLimit()
     {
-        $wordCounter = new WordCounter('test word test word word aa bb dd dd ddd fff sss');
-        $result = $wordCounter->count(6);
+        $result = $this->wordCounter->count('test word test word word aa bb dd dd ddd fff sss', 6);
 
         self::assertCount(6, $result);
         self::assertEquals(['word' => 3, 'test' => 2, 'dd' => 2, 'aa' => 1, 'bb' => 1, 'ddd' => 1], $result);
+    }
+
+    public function dataProvider()
+    {
+        return [
+            ['test word test word word', ['test' => 2, 'word' => 3]],
+            ['test,word,test,word , word', ['test' => 2, 'word' => 3]],
+            ['', []],
+            ['привет мир привет   мир мир', ['привет' => 2, 'мир' => 3]],
+        ];
     }
 }
